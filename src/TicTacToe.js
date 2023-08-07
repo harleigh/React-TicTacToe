@@ -12,7 +12,7 @@
 
 import { useState } from 'react';
 
-
+//main file being run
 export default function TicTacToe() {
 
   const [xIsNext, setXIsNext] = useState(true);
