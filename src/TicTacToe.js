@@ -31,12 +31,8 @@ function Square({ value, onSquareClick }) {
 
 
 
-//main file being run
-export default function TicTacToe() {
+function MyTicTacToe( { xIsNext, squares, playHandler } ) {
 
-  const [xIsNext, setXIsNext] = useState(true);
-  const [squares, setSquares] = useState(Array(9).fill(null));
-  
   const symbolX = "X";
   const symbolO = "O";
 
@@ -53,12 +49,11 @@ export default function TicTacToe() {
     if (squares[i] || calculateWinner(squares)) { return; }
 
     //set the ith square to the correct symbol
-    const nextSquares = squares.slice();
-    nextSquares[i] = (xIsNext ? symbolX : symbolO);
+    const newSquares = squares.slice();
+    newSquares[i] = (xIsNext ? symbolX : symbolO);
 
     //update the state of the squares and whether player X is next
-    setSquares(nextSquares);
-    setXIsNext(!xIsNext);
+    playHandler(newSquares)
   }//end function handleClick
 
 
@@ -110,40 +105,34 @@ export default function TicTacToe() {
     return null;
   }//end checking for the winner
 
-
-
   //the game board with status (e.g. who's move is next etc)
   //component can't return multiple tags so we wrap the board in an empty container
-  return ( <>
+   return ( <>
               <div className='status'>{gameStatus}</div>
               {buildBoard()}
-          </>);
-
+          </>); 
 }//end main tic tac to game
 
 
+export default function MainGame() {
+  
+  const [xIsNext, setXIsNext] = useState(true);
+  const [history, setHistory] = useState([Array(9).fill(null)]);
+  const currentSquares = history[history.length - 1];
 
+  function handlePlay(nextSquares) {
+    setHistory([...history, nextSquares]);
+    setXIsNext(!xIsNext);
+  }
 
-// Here's the tic tac toe board built by hand
-  /* The TicTacToe board build by hand
-  */
-  /* return (
+  return (
     <>
-      <div className='status'>{gameStatus}</div>
-      <div className="board-row">
-        <Square value={squares[0]} onSquareClick={() => handleClick(0)} />
-        <Square value={squares[1]} onSquareClick={() => handleClick(1)} />
-        <Square value={squares[2]} onSquareClick={() => handleClick(2)} />
+      <div><h1>Hello Game</h1></div>
+       <div className='game'>
+        <div className='game-board'>
+          <MyTicTacToe xIsNext={xIsNext} squares={currentSquares} playHandler={handlePlay}/>
+        </div>
       </div>
-      <div className="board-row">
-        <Square value={squares[3]} onSquareClick={() => handleClick(3)} />
-        <Square value={squares[4]} onSquareClick={() => handleClick(4)} />
-        <Square value={squares[5]} onSquareClick={() => handleClick(5)} />
-      </div>
-      <div className="board-row">
-        <Square value={squares[6]} onSquareClick={() => handleClick(6)} />
-        <Square value={squares[7]} onSquareClick={() => handleClick(7)} />
-        <Square value={squares[8]} onSquareClick={() => handleClick(8)} />
-      </div>
-    </>
-  ); */
+    </> 
+  );
+}
