@@ -227,7 +227,9 @@ export default function MainGame() {
    */
   return (
     <>
-      <div><h1>Hello Game</h1></div>
+      <div className='title'>
+        <h1>Hello Tic Tac Toe</h1>
+      </div>
        <div className='game'>
         <div className='game-board'>
           <TicTacToeBoard xIsNext={xIsNext}
