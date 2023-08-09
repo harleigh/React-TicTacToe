@@ -12,6 +12,10 @@
  * 
  */
 
+/**
+ * Square is used in TicTacToeBoard is used in MainGame
+ */
+
 import { useState } from 'react';
 
 
@@ -31,13 +35,36 @@ function Square({ value, onSquareClick }) {
 
 
 
-function MyTicTacToe( { xIsNext, squares, playHandler } ) {
+/**
+ *  This function is the main brains of tictactoe, building the game board, checking
+ *  for a winner, handeling the markings of the squares
+ *  xIsNext    flag whether x is the next player
+ *  gameMoves  an array of 9 elements representing the tictactoe moves
+ *  updateGame function that updates game based off of the most recent move
+ * 
+ * @returns a container with
+ *            1. the game status (whose move, who won)
+ *            2. a 3x3 tictactoe board
+ */
+function TicTacToeBoard( { xIsNext, gameMoves, updateGame, moveNumber } ) {
 
   const symbolX = "X";
   const symbolO = "O";
 
-  const winner = calculateWinner(squares);
-  const gameStatus = winner? "Winner: " + winner : "Next player: " + (xIsNext ? symbolX : symbolO);
+  const winner = calculateWinner(gameMoves);
+  let gameStatus
+  if(winner){
+    gameStatus = "Winner: " + winner;
+  }
+  else { //no winner
+    if(moveNumber===9){
+       gameStatus = "Cats Eye"
+    }
+    else {
+      gameStatus = "Next player: " + (xIsNext ? symbolX : symbolO);
+    }
+  }
+
 
   /**
    *  function handles the click of the ith square; this function is called by
@@ -46,14 +73,14 @@ function MyTicTacToe( { xIsNext, squares, playHandler } ) {
    */
   function handleClick(i) {
     // check if this square is already chosen or a winner has been achieved
-    if (squares[i] || calculateWinner(squares)) { return; }
+    if (gameMoves[i] || calculateWinner(gameMoves)) { return; }
 
     //set the ith square to the correct symbol
-    const newSquares = squares.slice();
+    const newSquares = gameMoves.slice();
     newSquares[i] = (xIsNext ? symbolX : symbolO);
 
     //update the state of the squares and whether player X is next
-    playHandler(newSquares)
+    updateGame(newSquares)
   }//end function handleClick
 
 
@@ -61,20 +88,20 @@ function MyTicTacToe( { xIsNext, squares, playHandler } ) {
     This function builds the board the user sees in the browser
     returns: component (which is the 3x3 tictactoe grid)
   */
-  function buildBoard(){
-    //this will store the gameboard
-    const gameBoard = [];
+  function buildBoardInterface(){
+    //the game board that the user sees, built from the movearray
+    const gameUI = [];
 
     //we build each row of the board 012, then 345, then 678
-    for(let i=0; i< squares.length/3; i++) {
-        gameBoard.push( <div className="board-row">
-                          <Square value={squares[3*i]}   onSquareClick={() => handleClick(3*i)} />
-                          <Square value={squares[3*i+1]} onSquareClick={() => handleClick(3*i+1)} />
-                          <Square value={squares[3*i+2]} onSquareClick={() => handleClick(3*i+2)} />
+    for(let i=0; i< gameMoves.length/3; i++) {
+      gameUI.push( <div className="board-row">
+                          <Square value={gameMoves[3*i]}   onSquareClick={() => handleClick(3*i)} />
+                          <Square value={gameMoves[3*i+1]} onSquareClick={() => handleClick(3*i+1)} />
+                          <Square value={gameMoves[3*i+2]} onSquareClick={() => handleClick(3*i+2)} />
                         </div>
                       );//end push
     }//end for
-    return gameBoard; 
+    return gameUI; 
   }//end function build board
 
 
@@ -98,22 +125,35 @@ function MyTicTacToe( { xIsNext, squares, playHandler } ) {
     //checking for winner along each of the winning lines
     for (let i = 0; i < winningLines.length; i++) {
       const [a, b, c] = winningLines[i];
-      if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
-        return squares[a];
+      if (gameMoves[a] && gameMoves[a] === gameMoves[b] && gameMoves[a] === gameMoves[c]) {
+        return gameMoves[a];
       }
     }
     return null;
   }//end checking for the winner
 
+
   //the game board with status (e.g. who's move is next etc)
   //component can't return multiple tags so we wrap the board in an empty container
    return ( <>
               <div className='status'>{gameStatus}</div>
-              {buildBoard()}
+              {buildBoardInterface()}
           </>); 
-}//end main tic tac to game
+}//end tictactoe board
 
 
+
+/**
+ * This is the highest component of the tictactoe game that manages
+ * the history of moves, and allows the user to jump between any move
+ * of the game
+ * 
+ * @returns a component containing 
+ *    1. a silly welcome message
+ *    2. the tictactoe board
+ *    3. an ordered list of buttons that allow the user to jump to any
+ *       move made in the game.
+ */
 export default function MainGame() {
   /**
    * history is an array of 9-element arrays
@@ -141,12 +181,12 @@ export default function MainGame() {
    * @param newGameSquares: The newest move that a player made on the board
    *                     which is going to be stuffed into the history. 
    */
-  function manageTurn(newGameSquares) {
+  function manageGameState(newGameSquares) {
     const pastHistory =  history.slice(0, currentMove+1);
     const currentHistory = [...pastHistory, newGameSquares]
     setHistory(currentHistory);
     setCurrentMove(currentHistory.length - 1);
-  }
+  }//end manage game state
 
 
   /**
@@ -180,12 +220,20 @@ export default function MainGame() {
       );
   })//end map
 
+
+  /**
+   * Componet of the tictactoe board, along with an ordered list of buttons
+   * where the user can jump between any move made in the game
+   */
   return (
     <>
       <div><h1>Hello Game</h1></div>
        <div className='game'>
         <div className='game-board'>
-          <MyTicTacToe xIsNext={xIsNext} squares={currentBoard} playHandler={manageTurn}/>
+          <TicTacToeBoard xIsNext={xIsNext}
+                          gameMoves={currentBoard}
+                          updateGame={manageGameState}
+                          moveNumber= {currentMove}/>
         </div>
         <div className="game-info">
           <ol>{moveArray}</ol>
@@ -193,4 +241,4 @@ export default function MainGame() {
       </div>
     </> 
   );
-}
+}//end main game
