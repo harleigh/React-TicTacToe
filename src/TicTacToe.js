@@ -115,22 +115,80 @@ function MyTicTacToe( { xIsNext, squares, playHandler } ) {
 
 
 export default function MainGame() {
-  
-  const [xIsNext, setXIsNext] = useState(true);
+  /**
+   * history is an array of 9-element arrays
+   * history[i] is the ith move of the game, so history[0]
+   * is simply a blank tictactoe board
+   */
   const [history, setHistory] = useState([Array(9).fill(null)]);
-  const currentSquares = history[history.length - 1];
+  const [currentMove, setCurrentMove] = useState(0);
+  
 
-  function handlePlay(nextSquares) {
-    setHistory([...history, nextSquares]);
-    setXIsNext(!xIsNext);
+  /**
+   * Setting wether x is next in the game, and setting the 
+   * current game board (of tictactoe) to the youngest element
+   * in the history array (i.e. most recent history)
+   */
+  const xIsNext = currentMove % 2 === 0;
+  const currentBoard = history[currentMove];
+
+
+  /**
+   * Take the newest play in the game and store it into the history, and
+   * switch the game to the next player.  Because the player can jump to
+   * any state of the game, we must manage the history based on the 
+   * current move.
+   * @param newGameSquares: The newest move that a player made on the board
+   *                     which is going to be stuffed into the history. 
+   */
+  function manageTurn(newGameSquares) {
+    const pastHistory =  history.slice(0, currentMove+1);
+    const currentHistory = [...pastHistory, newGameSquares]
+    setHistory(currentHistory);
+    setCurrentMove(currentHistory.length - 1);
   }
+
+
+  /**
+   * The user can jump to any move in the game, this function sets the
+   * current move of the game to the move number the user desirs to jump
+   * to. 
+   * @param {*} moveNum: the move in the game the user is jumping to
+   *                     0,...,8 
+   */
+  function jumpToMove(moveNum){
+    setCurrentMove(moveNum);    //current move num is where we jump to
+  }
+
+  /**
+   * Build a button for each move made in the game, storing them in a list
+   * keyed on the move number (which is a unique key).  Each button, when
+   * clicked executes the function that will jump to the desired move
+   *  moveNum:   the nth move of the game (0->8)
+   *  gameState: the squares in the tictactoe board at the current move number
+   * 
+   * when the user clicks on a button, then jumpToMove(moveNum) is called
+   */
+  const moveArray = history.map(  (_, moveNum)  => {
+      const desc = moveNum>0? 'Go to move #' + moveNum: 'Go to Start of Game'
+      return ( 
+        <li key={moveNum}>
+            <button onClick={()=> jumpToMove(moveNum)}>
+              {desc}
+            </button>
+        </li>
+      );
+  })//end map
 
   return (
     <>
       <div><h1>Hello Game</h1></div>
        <div className='game'>
         <div className='game-board'>
-          <MyTicTacToe xIsNext={xIsNext} squares={currentSquares} playHandler={handlePlay}/>
+          <MyTicTacToe xIsNext={xIsNext} squares={currentBoard} playHandler={manageTurn}/>
+        </div>
+        <div className="game-info">
+          <ol>{moveArray}</ol>
         </div>
       </div>
     </> 
